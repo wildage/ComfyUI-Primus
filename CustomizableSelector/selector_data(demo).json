@@ -1,0 +1,80 @@
+{
+  "groups": {
+    "Test": {
+      "items": [
+        {
+          "option": "1",
+          "value": "1"
+        },
+        {
+          "option": "2",
+          "value": "2"
+        },
+        {
+          "option": "3",
+          "value": "3"
+        }
+      ],
+      "outputs": "1"
+    },
+    "今天吃什么": {
+      "items": [
+        {
+          "option": "红烧肉",
+          "value": "红烧肉",
+          "value2": "红烧肉",
+          "value3": "红烧肉",
+          "value4": "红烧肉"
+        },
+        {
+          "option": "水煮鱼",
+          "value": "水煮鱼",
+          "value2": "水煮鱼",
+          "value3": "水煮鱼",
+          "value4": "水煮鱼"
+        },
+        {
+          "option": "大盘鸡",
+          "value": "大盘鸡",
+          "value2": "大盘鸡",
+          "value3": "大盘鸡",
+          "value4": "大盘鸡"
+        },
+        {
+          "option": "快餐店",
+          "value": "华莱士",
+          "value2": "杰克仕",
+          "value3": "肯德基",
+          "value4": "麦当劳"
+        }
+      ],
+      "outputs": "4"
+    },
+    "选择颜色": {
+      "items": [
+        {
+          "option": "红",
+          "value": "red",
+          "value2": "red",
+          "value3": "red",
+          "value4": "red"
+        },
+        {
+          "option": "蓝",
+          "value": "blue",
+          "value2": "blue",
+          "value3": "blue",
+          "value4": "blue"
+        },
+        {
+          "option": "绿",
+          "value": "green",
+          "value2": "green",
+          "value3": "green",
+          "value4": "green"
+        }
+      ],
+      "outputs": "4"
+    }
+  }
+}

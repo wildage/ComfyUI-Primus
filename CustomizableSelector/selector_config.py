@@ -212,6 +212,8 @@ def add_option(group_name, value_name, option_name=''):
     for item in items:
         if item.get('value') == value_name:
             return False, f"选项值 '{value_name}' 在分组 '{group_name}' 中已存在"
+        if item.get('option') == option_name:
+            return False, f"选项显示名 '{option_name}' 在分组 '{group_name}' 中已存在"
     new_item = {"option": option_name, "value": value_name}
     outputs = int(group.get('outputs', '1'))
     for i in range(2, outputs + 1):
@@ -249,6 +251,9 @@ def edit_option_by_index(group_name, index, new_option_name):
     items = config['groups'][group_name].get('items', [])
     if index < 0 or index >= len(items):
         return False, "索引越界"
+    for i, item in enumerate(items):
+        if i != index and item.get('option') == new_option_name:
+            return False, f"选项显示名 '{new_option_name}' 在分组 '{group_name}' 中已存在"
     items[index]['option'] = new_option_name
     _save_config(config)
     return True, new_option_name

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Customizable Selector 前端 UI
  *
  * 数据模型: 每个 item 内嵌 option / value / value2 / value3 / value4。
@@ -406,27 +406,54 @@ app.registerExtension({
                 });
             });
 
-            // --- 增加选项 ---
+            // --- 增加选项（value 重复回 value，option 重复回 option 保留 value）---
             this._createBtn(BTN_ADD_OPTION, () => {
                 const g = currentGroup(self);
                 if (!g || g === PLACEHOLDER_NO_GROUP) { alert("请先添加一个分组！"); return; }
-                const vn = prompt(`为分组"${g}"输入选项值(value)：`);
-                if (!vn || !vn.trim()) return;
-                const on = prompt(`为分组"${g}"输入选项显示名(option)：\n（留空则与 value 相同）`, vn.trim());
-                fetch('/primus/selector/add_option', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ group_name: g, value_name: vn.trim(), option_name: (on && on.trim()) ? on.trim() : '' }),
-                }).then(r => r.json()).then(async d => {
-                    if (d.success) {
-                        await fetchConfig();
-                        updateAllValueWidgets(self);
-                        const ow = self.widgets.find(w => w.name === 'option');
-                        const vw = self.widgets.find(w => w.name === 'value');
-                        const newOpt = (on && on.trim()) ? on.trim() : vn.trim();
-                        if (ow && ow.options.values.includes(newOpt)) ow.value = newOpt;
-                        if (vw && vw.options.values.includes(vn.trim())) vw.value = vn.trim();
-                    } else alert(d.message);
-                });
+                // value 输入循环
+                let vn = null;
+                while (true) {
+                    const input = prompt(`为分组"${g}"输入选项值(value)：`, vn || '');
+                    if (!input || !input.trim()) return;  // 取消则整个流程终止
+                    vn = input.trim();
+                    // 先在前端预检 value 重复（快速反馈）
+                    const vw = self.widgets.find(w => w.name === 'value');
+                    if (vw && vw.options.values.includes(vn)) {
+                        alert(`选项值 '${vn}' 已存在，请重新输入`);
+                        continue;
+                    }
+                    break;
+                }
+                // option 输入循环（保留 vn）
+                let on = null;
+                while (true) {
+                    const input = prompt(`为分组"${g}"输入选项显示名(option)：\n（留空则与 value 相同）`, on || vn);
+                    if (input === null) return;  // 点取消则整个流程终止
+                    const optVal = input.trim();
+                    on = optVal;
+                    const finalOpt = optVal || vn;
+                    // 前端预检 option 重复
+                    const ow = self.widgets.find(w => w.name === 'option');
+                    if (ow && ow.options.values.includes(finalOpt)) {
+                        alert(`选项显示名 '${finalOpt}' 已存在，请重新输入`);
+                        continue;
+                    }
+                    // 提交到后端
+                    fetch('/primus/selector/add_option', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ group_name: g, value_name: vn, option_name: finalOpt === vn ? '' : finalOpt }),
+                    }).then(r => r.json()).then(async d => {
+                        if (d.success) {
+                            await fetchConfig();
+                            updateAllValueWidgets(self);
+                            const ow2 = self.widgets.find(w => w.name === 'option');
+                            const vw2 = self.widgets.find(w => w.name === 'value');
+                            if (ow2 && ow2.options.values.includes(finalOpt)) ow2.value = finalOpt;
+                            if (vw2 && vw2.options.values.includes(vn)) vw2.value = vn;
+                        } else alert(d.message);
+                    });
+                    return;
+                }
             });
 
             // --- 删除分组 ---

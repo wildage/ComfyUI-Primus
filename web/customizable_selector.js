@@ -198,11 +198,24 @@ app.registerExtension({
 
         const onConfigure = nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure = function (info) {
+            // 捕获 widgets_values 并暂时置空，阻止 base onConfigure 按索引错误赋值。
+            // 原因：此时编辑按钮尚未添加（只有 7 个下拉框），但旧工作流保存了 13 个值
+            // （含按钮的 null），按索引赋值会导致从 option 开始全部错位。
+            const savedWidgetsValues = info.widgets_values ? [...info.widgets_values] : null;
+            const origWV = info.widgets_values;
+            info.widgets_values = null;
+
             const result = onConfigure ? onConfigure.apply(this, arguments) : undefined;
+            info.widgets_values = origWV; // 恢复，供其他处理器使用
+
             setTimeout(async () => {
                 await fetchConfig();
                 this.setupCallbacks();
                 this.addPrimusWidgets();
+                // 按组件名称手动赋值（过滤掉按钮的 null/0 值），避免索引错位
+                if (savedWidgetsValues && savedWidgetsValues.length > 0) {
+                    this._applySavedWidgetValues(savedWidgetsValues);
+                }
                 updateGroupWidget(this);
                 updateAllValueWidgets(this);
                 applyOutputsVisibility(this);
@@ -299,6 +312,24 @@ app.registerExtension({
             this.widgets.splice(i, 1);
             const t = this.widgets.findIndex(w => w.name === targetName);
             this.widgets.splice(t + 1, 0, widget);
+        };
+
+        /**
+         * 按组件名称手动应用 widgets_values，而非按索引赋值。
+         * 兼容两种保存格式：
+         *   - 旧格式（13 值）：含编辑按钮的 null 值，需过滤
+         *   - 新格式（7 值）：仅下拉框值
+         */
+        nodeType.prototype._applySavedWidgetValues = function (savedValues) {
+            const dropdownNames = ['group', 'option', 'value', 'value2', 'value3', 'value4', 'outputs'];
+            // 过滤掉 null/undefined/0（按钮的序列化值），保留下拉框的实际值
+            const realValues = savedValues.filter(v => v != null && v !== 0);
+            dropdownNames.forEach((name, i) => {
+                if (i < realValues.length) {
+                    const w = this.widgets.find(w2 => w2.name === name);
+                    if (w) w.value = realValues[i];
+                }
+            });
         };
 
         nodeType.prototype.addPrimusWidgets = function () {

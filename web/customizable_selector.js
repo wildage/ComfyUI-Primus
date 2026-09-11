@@ -111,10 +111,11 @@ function syncAllVisibleValues(node) {
     syncAllVisibleValuesToIndex(node, idx);
 }
 
-function syncAllVisibleValuesTo(node, targetValue) {
-    const rw = node.widgets.find(w => w.name === 'value');
-    if (!rw) return;
-    const idx = rw.options.values.indexOf(targetValue);
+function syncFromWidget(node, widgetName, selectedValue) {
+    const w = node.widgets.find(w2 => w2.name === widgetName);
+    if (!w) return;
+    // 用「触发的那一栏自己」查下标，而不是固定用 value 栏反查
+    const idx = w.options.values.indexOf(selectedValue);
     if (idx < 0) return;
     syncAllVisibleValuesToIndex(node, idx);
 }
@@ -244,7 +245,7 @@ app.registerExtension({
                 const w = this.widgets.find(w2 => w2.name === name);
                 if (w) {
                     const orig = w.callback;
-                    w.callback = (v) => { if (orig) orig.call(self, v); syncAllVisibleValuesTo(self, v); };
+                    w.callback = (v) => { if (orig) orig.call(self, v); syncFromWidget(self, name, v); };
                 }
             }
 

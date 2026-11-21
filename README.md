@@ -3,7 +3,7 @@ Let me create some easy-to-use custom nodes for ComfyUI.
 
 ---
 
-目前只有一个节点：
+目前有2个节点：
 
 ---
 
@@ -14,5 +14,11 @@ Customizable Selector
 `selector_data.json` 是选项组的定义文件，每次在UI更新某个选项组(新增/编辑/删除)都会更新此文件。当个人定义好足够多的常用选项组后注意备份此文件，避免丢失定义。
 
 **特别说明**：由于代码使用ComfyUI的下拉框时，通过选项值查找具体是选择了哪一项，所以要确保每个下拉框的不同选项不要完全重复。此下拉框最适用于lora名、lora关键词、lora补充提示词润色的联动，所以要注意哪怕确实需要使用完全一样的提示词，也可以适当增加不影响生成结果的无意义文字来加以区分。
+
+---
+
+Resolution Selector Ex
+该节点是官方节点Resolution Selector的升级版本，允许实时将分辨率显示出来并且输出给其他节点。
+可以把生成的width/height值输出给MOSS Layout Editor等节点，用于方便地统一多个不同节点所使用的分辨率。
 
 ---

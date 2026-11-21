@@ -7,7 +7,7 @@ Let me create some easy-to-use custom nodes for ComfyUI.
 
 ---
 
-###Customizable Selector
+## Customizable Selector
 
 可以定义多个用于不同目的的选项组。
 默认每个选项组中每个选项只有1个value，但是如果需要每个选项带有多个value(例如分别存正向词和负向词)，则可扩展value的数量，最多可以扩展到每个选项有4个不同的value输出。
@@ -18,7 +18,7 @@ Let me create some easy-to-use custom nodes for ComfyUI.
 
 ---
 
-###Resolution Selector Ex
+## Resolution Selector Ex
 
 该节点是官方节点Resolution Selector的升级版本，允许实时将分辨率显示出来并且输出给其他节点。
 可以把生成的width/height值输出给MOSS Layout Editor等节点，用于方便地统一多个不同节点所使用的分辨率。

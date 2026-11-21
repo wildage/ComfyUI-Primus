@@ -72,10 +72,20 @@ function updateDimensionWidgets(node) {
     if (!result) return;
 
     const [width, height] = result;
-    if (widthW.value !== width) widthW.value = width;
-    if (heightW.value !== height) heightW.value = height;
+    setWidgetValue(widthW, width);
+    setWidgetValue(heightW, height);
 
     node.setDirtyCanvas?.(true, true);
+}
+
+/**
+ * 同时写入 widget.value 与其 DOM 元素，避免只改一边导致界面不刷新。
+ */
+function setWidgetValue(w, value) {
+    if (w.value !== value) w.value = value;
+    if (w.inputEl && w.inputEl.value !== String(value)) {
+        w.inputEl.value = String(value);
+    }
 }
 
 app.registerExtension({
@@ -85,30 +95,37 @@ app.registerExtension({
         if (nodeData.name !== NODE_NAME) return;
 
         nodeType.prototype.setupResolutionWidgets = function () {
-            // width / height 只读：值只由计算填充，不允许手动编辑
-            for (const name of ["width", "height"]) {
-                const w = this.widgets?.find((it) => it.name === name);
-                if (!w) continue;
-                w.disabled = true;
-                if (w.inputEl) {
-                    w.inputEl.readOnly = true;
-                    w.inputEl.style.opacity = 0.7;
-                }
-            }
+            const self = this;
 
-            // 参数变化时实时重算（只绑定一次，避免 onConfigure 重复包装）
+            // width / height 保持普通可编辑框：
+            // 手动改的值会被下次参数变化重算覆盖，无需额外限制。
+            // 参数变化时实时重算：widget.callback 与 onWidgetChanged 双保险。
+            // number 类型（megapixels / multiple）在部分渲染模式下不会走 widget.callback，
+            // 必须用 onWidgetChanged 兜底，否则改完数值要重选一次下拉框才刷新。
             if (!this._resolutionCallbacksBound) {
                 this._resolutionCallbacksBound = true;
-                const self = this;
+
                 for (const name of ["aspect_ratio", "megapixels", "multiple"]) {
                     const w = this.widgets?.find((it) => it.name === name);
                     if (!w) continue;
                     const orig = w.callback;
-                    w.callback = (v) => {
-                        if (orig) orig.call(self, v);
+                    w.callback = function () {
+                        const result = orig ? orig.apply(this, arguments) : undefined;
                         updateDimensionWidgets(self);
+                        return result;
                     };
                 }
+
+                const origWidgetChanged = this.onWidgetChanged;
+                this.onWidgetChanged = function (name) {
+                    const result = origWidgetChanged
+                        ? origWidgetChanged.apply(this, arguments)
+                        : undefined;
+                    if (name === "aspect_ratio" || name === "megapixels" || name === "multiple") {
+                        updateDimensionWidgets(this);
+                    }
+                    return result;
+                };
             }
 
             // 初始计算一次
